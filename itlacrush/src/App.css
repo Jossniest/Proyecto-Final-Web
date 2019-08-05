@@ -1,0 +1,11 @@
+a:hover{
+  color: currentColor;
+  text-decoration:none;
+}
+.App{
+  background-image: url("./resources/cool-background.png");
+  background-attachment: fixed;
+  background-clip: border-box;
+ 
+}
+

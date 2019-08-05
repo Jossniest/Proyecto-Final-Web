@@ -1,0 +1,19 @@
+.BrandTitle{
+    font-family: 'Roboto', sans-serif;
+    font-family: 'Pacifico', cursive;
+    font-size: 1.4em;
+    font-weight: bolder;
+    line-height: 1.4em;
+    color: #000; 
+   
+}
+.BrandTitle-2{
+  color: #DC143C; 
+}
+.brand-logo:hover{
+    text-decoration: none;
+}
+.brand-logo:first-child{
+  margin-left: 60px;
+}
+
