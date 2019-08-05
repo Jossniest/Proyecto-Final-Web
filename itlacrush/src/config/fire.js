@@ -1,6 +1,7 @@
 import app from 'firebase/app';
 import 'firebase/auth'
 import 'firebase/database'
+import 'firebase/storage'
 import FirebaseContext,{withFirebase} from './context'
 
 const firebaseConfig = {
@@ -8,7 +9,7 @@ const firebaseConfig = {
     authDomain: "itla-crush-web.firebaseapp.com",
     databaseURL: "https://itla-crush-web.firebaseio.com",
     projectId: "itla-crush-web",
-    storageBucket: "",
+    storageBucket: "itla-crush-web.appspot.com",
     messagingSenderId: "870136251980",
     appId: "1:870136251980:web:9286c25055202ae3"
   };
@@ -18,9 +19,10 @@ class Firebase {
     app.initializeApp(firebaseConfig);
     this.serverValue = app.database.ServerValue
     this.emailAuthProvider = app.auth.EmailAuthProvider;
-
+    
     this.auth = app.auth();
     this.db = app.database();
+    this.storage = app.storage()
   }
   doCreateUserWithEmailAndPassword = (email, password) =>
     this.auth.createUserWithEmailAndPassword(email, password);
@@ -63,10 +65,12 @@ class Firebase {
 
     user = uid => this.db.ref(`users/${uid}`);
 
-    users = () => this.db.ref('users');
+    users = () => this.db.ref('users/');
     
     publication = uid => this.db.ref(`publication/${uid}`)
-    publication = () => this.db.ref('publication/')
+    publication = () => this.db.ref('publication')
+    
+    profile = () => this.storage.ref('profile')
 
 }
 export default Firebase;

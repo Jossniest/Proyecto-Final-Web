@@ -8,9 +8,25 @@ import {Redirect} from 'react-router-dom'
 
 
 class Board extends Component{
+    constructor(props){
+        super(props);
+    }
+    
+    componentDidMount() {
+        this.onListenForPublication();
+      }
+    onListenForPublication = () => {
+        this.props.firebase
+          .publication()
+          .orderByChild('createdAt')
+          .on('value', snapshot => {
+            this.props.onSetPublication(snapshot.val());
+
+          });
+      };
     render(){
         const {publicaciones, authUser} = this.props
-    
+        
         return(
             <div className="full">
                 
@@ -39,4 +55,9 @@ const mapStateToProps = (state) => ({
         }),
       ),
 });
-export default compose(withFirebase,connect(mapStateToProps),)(Board);
+const mapDispatchToProps = dispatch => ({
+    onSetPublication: publication =>
+      dispatch({ type: 'Publication_added', publication }),
+    
+  });
+export default compose(withFirebase,connect(mapStateToProps,mapDispatchToProps))(Board);

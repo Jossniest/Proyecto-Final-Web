@@ -7,11 +7,7 @@ import {connect} from 'react-redux'
 import {withFirebase} from '../../config/fire'
 import {Redirect} from 'react-router-dom'
 
-const data = [
-    { label: "Jose", value: 1 },
-    { label: "Otro", value: 2 },
-    
-  ];
+
 class NewPublication extends Component{
     constructor(props){
         super(props);
@@ -21,22 +17,30 @@ class NewPublication extends Component{
             otheruser: '',
             img: '',
             body: '',
-            url: null,
+            url: '',
             publicConfession: false,
             privatePublication: false,
+            data: []
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.toggleChangePublica = this.toggleChangePublica.bind(this);
         this.setValues = this.setValues.bind(this);
         this.toggleChangePrivada = this.toggleChangePrivada.bind(this);
-        this.fileChange = this.fileChange.bind(this);
+        
     }
     componentDidMount() {
-        this.props.firebase.users().on('value', snapshot => {
-          this.props.onSetUsers(snapshot.val());
-        });
+        this.onListenForUsers();
+
       }
+      onListenForUsers = () => {
+        this.props.firebase
+          .users()
+          .on('value', snapshot => {
+            this.props.onSetUser(snapshot.val());
+
+          });
+      };
 
     componentWillUnmount() {
         this.props.firebase.publication().off();
@@ -44,15 +48,19 @@ class NewPublication extends Component{
     }
 
     handleChange(e){
-        
+        let reader = new FileReader()
         const { name, value, files} = e.target;
         switch (name){
             case 'img':
-                this.setState({
-                img: e.target.files[0],
-                url: URL.createObjectURL(e.target.files[0])
+                let file = e.target.files[0]
+                reader.onloadend = () => {
+                    this.setState({
+                        img: file,
+                        url: reader.result
+                    })
+                }
+                reader.readAsDataURL(file)
                 
-                })
                 console.log("file", this.state.img)
                 console.log("url", this.state.url)
                 break;
@@ -64,12 +72,22 @@ class NewPublication extends Component{
 
     handleSubmit(e, authUser){
         e.preventDefault();
+        const {title, body, selectuser, otheruser,img,publicConfession,privatePublication, url} = this.state
+        this.props.firebase.profile(new Date().getTime()).put(img).
+        then((snapshot) =>{
+            this.props.firebase.publication().push({
+                title,
+                body,
+                selectuser,
+                otheruser,
+                img: snapshot.metadata.downloadURLs[0],
+                publicConfession,
+                privatePublication,
+                userId: authUser.uid,
+                createdAt: this.props.firebase.serverValue.TIMESTAMP,
+              });
+        })
         
-        this.props.firebase.publication().push({
-            ...this.state,
-            userId: authUser.user,
-            createdAt: this.props.firebase.serverValue.TIMESTAMP,
-          });
         console.log(this.state)
         
     } 
@@ -104,6 +122,15 @@ class NewPublication extends Component{
 
     render(){
         const { users,authUser } = this.props;
+        let data = []
+        users.map((key) =>{
+            this.state.data = {label: key.name, value:key.name}
+        }) 
+
+        const datos = this.state.data
+        console.log(users)
+        console.log(datos)
+
         if(!authUser) return <Redirect to="/"></Redirect>
         let msgcheck = null,
         msgcheck2 = null
@@ -143,13 +170,13 @@ class NewPublication extends Component{
                     </div>    
                     <div className="switch mt-25 col s6">
                         <label className="active font-weight-bold">Destinatario de la confesión</label><br/>  
-                        <Select options={users.user} className="react-select-container" name="selectuser" onChange={(values) => this.setValues(values)}/> 
+                        <Select options={users.name} className="react-select-container" name="selectuser" onChange={(values) => this.setValues(values)}/> 
                     </div>
                     {this.renderElement()}
 
                     <div className="custom-file mt-25 col s6">
                         <i className="material-icons prefix">archive</i>
-                        <input type="file" accept="image/*" name="img" id="img" className="form-control-file mt-25" value={this.state.img} onChange={this.handleChange} ></input>
+                        <input type="file" accept="image/*" name="img" id="img" className="form-control-file mt-25"  onChange={this.handleChange} ></input>
                         
                     </div>
                     { this.state.img ? 
@@ -185,8 +212,10 @@ class NewPublication extends Component{
 const mapDispatchToProps = dispatch => ({
     onSetPublication: publication =>
       dispatch({ type: 'PUBLICATION_SET', publication }),   
+    onSetUser: users => 
+        dispatch({type:'USERS_SET', users})
 });
-  const mapStateToProps = state => ({
+const mapStateToProps = state => ({
     authUser: state.sessionState.authUser,
     users: Object.keys(state.userState.users || {}).map(key => ({
       ...state.userState.users[key],
@@ -194,4 +223,5 @@ const mapDispatchToProps = dispatch => ({
     })),
   });
 
-export default compose(withFirebase, connect(mapDispatchToProps,mapStateToProps),)(NewPublication);
+
+export default compose(withFirebase, connect(mapStateToProps,mapDispatchToProps))(NewPublication);

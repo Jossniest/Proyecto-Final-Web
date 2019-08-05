@@ -21,7 +21,7 @@ class PublicationCast extends Component{
                 </div>
 
                 <div className="card-image waves-effect waves-block waves-light">
-                  <img className="activator" src={persona} alt="Foto Crush"/>
+                  <img className="activator" src={this.props.publication.url} alt="Foto Crush"/>
                 </div>
                 <div className="card-content">
                   <span className="card-title activator grey-text text-darken-4">{this.props.publication.title}<i className="material-icons right">more_vert</i></span>

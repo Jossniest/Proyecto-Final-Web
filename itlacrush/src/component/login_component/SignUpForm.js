@@ -101,7 +101,7 @@ class SignUpFormBase extends Component{
         })
         .then(()=>{
             this.setState({...init_state});
-            this.props.history.push('/home')
+            this.props.history.push('/')
         }).catch(error =>{
             if (error.code === ERROR_CODE_ACCOUNT_EXISTS) {
                 error.message = ERROR_MSG_ACCOUNT_EXISTS;

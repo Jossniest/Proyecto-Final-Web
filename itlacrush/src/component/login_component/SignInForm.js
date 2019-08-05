@@ -59,7 +59,7 @@ class SignInFormBase extends Component{
         <div className="FormCenter">
             <form className="FormFields" onSubmit={this.handleSubmit}>
                 <div className="FormField">
-                    <label className="FormField__Label" htmlFor="email">Usuario</label>
+                    <label className="FormField__Label" htmlFor="email">Email</label>
                     <input type='text' id="email" className="FormField__Input" placeholder="Escriba su email" name="email"
                     value={this.state.email} onChange={this.handleChange}></input>
                      
