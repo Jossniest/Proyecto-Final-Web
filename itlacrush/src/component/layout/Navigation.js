@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import LogInLinks from './LogInLinks';
 import LogOutLinks from './LogOutLinks';
 
+import {Navbar, Nav,} from 'react-bootstrap'
 
 const Navigation = ({authUser}) => 
     authUser ? (
@@ -14,23 +15,30 @@ const Navigation = ({authUser}) =>
         <NavigationNonAuth/>
     )
 
-const NavigationAuth = (authUser) => (
-    <nav>
-        <div className="nav-wrapper s12 m6">
-            <Link to="/" className="brand-logo"><h1 className="BrandTitle">Itla <span className="BrandTitle-2">Crush</span></h1></Link>
-            <a href="#" data-target="mobile-demo" className="sidenav-trigger"><i className="material-icons">menu</i></a>
-            <LogInLinks/>
-        </div>
-    </nav>   
-)
+const NavigationAuth = (authUser) => {
+    
+    return(
+    
+    <Navbar sticky="top" collapseOnSelect expand="sm" bg="pink" variant="dark" className="w-100 bd-highlight">
+        <Navbar.Brand><Link to="/"><h1 className="BrandTitle">Itla <span className="BrandTitle-2">Crush</span></h1></Link></Navbar.Brand>
+        
+        <Navbar.Toggle aria-controls="responsive-navbar-nav"/>
+        <Navbar.Collapse id="responsive-navbar-nav" >  
+                <LogInLinks/>
+        </Navbar.Collapse>
+        <Navbar.Brand><h2 >{authUser.authUser.user}</h2></Navbar.Brand>
+        
+    </Navbar> 
+      
+)}
 const NavigationNonAuth = () => (
-    <nav>
-        <div className="nav-wrapper s12 m6">
-            <Link to="/" className="brand-logo"><h1 className="BrandTitle">Itla <span className="BrandTitle-2">Crush</span></h1></Link>
-            <a href="#" data-target="mobile-demo" className="sidenav-trigger"><i className="material-icons">menu</i></a>
-            <LogOutLinks/>
-        </div>
-    </nav>
+    <Navbar collapseOnSelect expand="lg" bg="pink" variant="dark">
+        <Navbar.Brand><Link to="/"><h1 className="BrandTitle">Itla <span className="BrandTitle-2">Crush</span></h1></Link></Navbar.Brand>
+        <Navbar.Toggle aria-controls="responsive-navbar-nav"/>
+        <Navbar.Collapse id="responsive-navbar-nav" >  
+                <LogOutLinks/>
+        </Navbar.Collapse>
+    </Navbar>
 )
 const mapStateToProps = state => ({
     authUser: state.sessionState.authUser,

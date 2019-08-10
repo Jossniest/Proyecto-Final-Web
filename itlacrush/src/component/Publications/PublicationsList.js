@@ -7,7 +7,8 @@ class PublicationList extends Component{
         
     }
     render(){
-        console.log(this.props.publications)
+        
+
         return(
            <div className="section">
                {this.props.publications && this.props.publications.map(publication => {

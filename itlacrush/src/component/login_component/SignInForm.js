@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
-import { withRouter } from 'react-router-dom';
 import { compose } from 'redux';
 import {connect} from 'react-redux'
 import {Redirect} from 'react-router-dom'
@@ -52,9 +51,9 @@ class SignInFormBase extends Component{
     render(){
         const {authUser} = this.props;
         if(authUser) return <Redirect to="/"></Redirect>
-        const { email, password, error } = this.state;
+        const { error } = this.state;
 
-        const isInvalid = password === '' || email === '';
+        
         return(
         <div className="FormCenter">
             <form className="FormFields" onSubmit={this.handleSubmit}>

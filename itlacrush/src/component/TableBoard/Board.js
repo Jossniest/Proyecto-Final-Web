@@ -10,11 +10,15 @@ import {Redirect} from 'react-router-dom'
 class Board extends Component{
     constructor(props){
         super(props);
+        this.state = {
+          data: []
+        }
     }
     
     componentDidMount() {
-        this.onListenForPublication();
-      }
+        this.onListenForPublication();  
+        
+    }
     onListenForPublication = () => {
         this.props.firebase
           .publication()
@@ -24,9 +28,23 @@ class Board extends Component{
 
           });
       };
+    
+    
     render(){
-        const {publicaciones, authUser} = this.props
-        
+      
+      const {publicaciones, authUser} = this.props
+      console.log(publicaciones)
+      var filter = []
+      if(!authUser){
+        filter = publicaciones.filter(function(publication) {
+            return publication.privatePublication == false;
+        }) 
+      }
+      else{
+        filter = publicaciones 
+      }
+      
+      console.log(filter)
         return(
             <div className="full">
                 
@@ -35,7 +53,7 @@ class Board extends Component{
                 
                 <div className="row #ffebee red lighten-5 board">
                     <div className="col s12 m6">
-                       <PublicationList publications={publicaciones}/> 
+                       <PublicationList publications={filter}/> 
                     </div>
                     
                 </div>
@@ -48,7 +66,7 @@ class Board extends Component{
 }
 const mapStateToProps = (state) => ({
     authUser: state.sessionState.authUser,
-    publicaciones:Object.keys(state.publicationState.publication || {}).map(
+    publicaciones:Object.keys(state.publicationState.publication || {}).reverse().map(
         key => ({
           ...state.publicationState.publication[key],
           uid: key,

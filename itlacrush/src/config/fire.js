@@ -70,7 +70,7 @@ class Firebase {
     publication = uid => this.db.ref(`publication/${uid}`)
     publication = () => this.db.ref('publication')
     
-    profile = () => this.storage.ref('profile')
+    profile = (filename) => this.storage.ref().child(filename)
 
 }
 export default Firebase;

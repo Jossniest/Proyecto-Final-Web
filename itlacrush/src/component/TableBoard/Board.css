@@ -20,8 +20,9 @@
     cursor: pointer;
 }
 .image-size{
-    max-width: 400px;
-    max-height: 270px;
+    
+    max-height: 260px;
+    
 
 }
 

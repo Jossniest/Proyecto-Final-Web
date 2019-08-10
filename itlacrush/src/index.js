@@ -5,7 +5,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import {Provider} from 'react-redux';
 import configureStore from './store/store';
-import firebase, {FirebaseContext} from './config/fire'
+import {FirebaseContext} from './config/fire'
 import Firebase from './config/fire';
 
 

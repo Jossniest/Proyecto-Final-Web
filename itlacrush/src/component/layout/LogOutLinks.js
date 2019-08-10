@@ -1,16 +1,12 @@
 import React from 'react';
 import {NavLink} from 'react-router-dom';
-
+import {Navbar, Nav,} from 'react-bootstrap'
 
 const LogOutLinks = () => {
     return (
-        <div>
-        <ul className="right ">
-            <li><NavLink to="/login">Iniciar Sesión</NavLink></li>
-        </ul>
-        </div>
-        
-        
+        <Nav className="mr-auto">
+            <Nav.Link><NavLink to="/login">Iniciar Sesión</NavLink></Nav.Link>
+        </Nav> 
     )
 }
 export default LogOutLinks;

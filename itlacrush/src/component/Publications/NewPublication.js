@@ -7,21 +7,36 @@ import {connect} from 'react-redux'
 import {withFirebase} from '../../config/fire'
 import {Redirect} from 'react-router-dom'
 
+function validate(title,selectuser, img,body,url ) {
+    // true means invalid, so our conditions got reversed
+    return {
+        title: title.length === 0,
+        selectuser: selectuser.length === 0 ,
+        img: null,
+        body: body.length === 0,
+        url: null,
+        
+    };
+  }
 
+const InitState = {
+    title: '',
+    selectuser: '' ,
+    otheruser: '',
+    img: null,
+    body: '',
+    url: null,
+    
+}
 class NewPublication extends Component{
     constructor(props){
         super(props);
         this.state = {
-            title: '',
-            selectuser: '' ,
-            otheruser: '',
-            img: '',
-            body: '',
-            url: '',
+            ...InitState,
             publicConfession: false,
             privatePublication: false,
-            data: []
-        };
+            logUser: ''
+        }
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.toggleChangePublica = this.toggleChangePublica.bind(this);
@@ -31,20 +46,22 @@ class NewPublication extends Component{
     }
     componentDidMount() {
         this.onListenForUsers();
-
-      }
-      onListenForUsers = () => {
+        
+    }
+    onListenForUsers = () => {
         this.props.firebase
           .users()
           .on('value', snapshot => {
-            this.props.onSetUser(snapshot.val());
+            this.props.onSetUsers(snapshot.val());
 
-          });
-      };
-
+        });
+    };
+   
+     
     componentWillUnmount() {
         this.props.firebase.publication().off();
         this.props.firebase.users().off();
+        this.props.firebase.user(this.props.match.params.id).off();
     }
 
     handleChange(e){
@@ -52,44 +69,65 @@ class NewPublication extends Component{
         const { name, value, files} = e.target;
         switch (name){
             case 'img':
+                try{
                 let file = e.target.files[0]
+                
                 reader.onloadend = () => {
+                    
                     this.setState({
                         img: file,
                         url: reader.result
                     })
                 }
                 reader.readAsDataURL(file)
-                
-                console.log("file", this.state.img)
-                console.log("url", this.state.url)
+    
+                }
+                catch(error){
+                    console.log(error)
+                    this.setState({
+                        img: null,
+                        url: null
+                    })
+                }
                 break;
             default:
                 break;
         }
         this.setState({[name]: value});
+        
     }
 
     handleSubmit(e, authUser){
-        e.preventDefault();
-        const {title, body, selectuser, otheruser,img,publicConfession,privatePublication, url} = this.state
-        this.props.firebase.profile(new Date().getTime()).put(img).
+        if (!this.canBeSubmitted()) {
+            e.preventDefault();
+            return;
+          }
+        e.preventDefault()
+        const {title, body, selectuser, otheruser,img,publicConfession,privatePublication} = this.state
+        console.log(authUser.name + ' ' + authUser.lastname)
+        this.props.firebase.profile(`profile/${new Date().getTime()}`).put(img).
         then((snapshot) =>{
-            this.props.firebase.publication().push({
-                title,
-                body,
-                selectuser,
-                otheruser,
-                img: snapshot.metadata.downloadURLs[0],
-                publicConfession,
-                privatePublication,
-                userId: authUser.uid,
-                createdAt: this.props.firebase.serverValue.TIMESTAMP,
+            snapshot.ref.getDownloadURL().then((url) =>{
+                this.props.firebase.publication().push({
+                    title,
+                    body,
+                    selectuser,
+                    otheruser,
+                    img: url,
+                    publicConfession,
+                    privatePublication,
+                    user: authUser.name + ' ' + authUser.lastname,
+                    date: new Date().toLocaleDateString(),
+                    createdAt: this.props.firebase.serverValue.TIMESTAMP,
+            })
+            
               });
+        }).then(() =>{
+            console.log(this.state)  
+            this.setState(InitState)
+
         })
-        
-        console.log(this.state)
-        
+         
     } 
     toggleChangePrivada = () => {
         this.setState({
@@ -115,23 +153,30 @@ class NewPublication extends Component{
                     <div className="input-field mt-25">
                     <input id="otherUser" type="text"  name="otheruser" placeholder="Especifique el nombre del usuario" onChange={this.handleChange} className="validate"/>
                     </div>
-                )
-                
+                )          
         }
     }
+    canBeSubmitted() {
+        const errors = validate(this.state.title, this.state.selectuser, this.state.img, this.state.body,this.state.url);
+        const isDisabled = Object.keys(errors).some(x => errors[x]);
+        return !isDisabled;
+      }
 
     render(){
-        const { users,authUser } = this.props;
-        let data = []
-        users.map((key) =>{
-            this.state.data = {label: key.name, value:key.name}
-        }) 
-
-        const datos = this.state.data
-        console.log(users)
-        console.log(datos)
-
+        const errors = validate(this.state.title, this.state.selectuser, this.state.img, this.state.body,this.state.url);
+        const isDisabled = Object.keys(errors).some(x => errors[x]);
+        
+        const {users, authUser} = this.props;
+        
+        let options = users.map(function (user) {
+            return { value: user.user, label: user.name + ' ' + user.lastname };
+          })
+        let otros = { value: "Otro" , label: "Otro" }
+        options.push(otros)
+        
+        
         if(!authUser) return <Redirect to="/"></Redirect>
+
         let msgcheck = null,
         msgcheck2 = null
         if(this.state.publicConfession){
@@ -170,20 +215,20 @@ class NewPublication extends Component{
                     </div>    
                     <div className="switch mt-25 col s6">
                         <label className="active font-weight-bold">Destinatario de la confesión</label><br/>  
-                        <Select options={users.name} className="react-select-container" name="selectuser" onChange={(values) => this.setValues(values)}/> 
+                        <Select options={options} className="react-select-container" name="selectuser" onChange={(values) => this.setValues(values)}/> 
                     </div>
                     {this.renderElement()}
 
                     <div className="custom-file mt-25 col s6">
                         <i className="material-icons prefix">archive</i>
-                        <input type="file" accept="image/*" name="img" id="img" className="form-control-file mt-25"  onChange={this.handleChange} ></input>
+                        <input type="file" accept="image/*" name="img" id="img" className="form-control-file mt-25" defaultValue={this.state.img} onChange={this.handleChange} ></input>
                         
                     </div>
                     { this.state.img ? 
-                    <div class="card small col s6 container">
+                    <div className="card small col s6 container">
                         
                         <div className="card-content center-align" >
-                          <img className="image-size" src={this.state.url ? this.state.url : "https://gbo.eu/wp-content/themes/gbotheme/data/img/empty.jpg"} atl=""/>
+                          <img className="image-size" src={this.state.url } atl=""/>
                         </div>
                     </div> : ""
                     }
@@ -199,7 +244,7 @@ class NewPublication extends Component{
                         <label htmlFor="body" className="active">¿Qué confiesas?</label>   
                     </div>
                     <div className="FormField">
-                        <button className="FormField__Button mr-20" >Enviar Confesión</button> 
+                        <button disabled={isDisabled}  className="FormField__Button mr-20" >Enviar Confesión</button> 
                     </div> 
                 </form>
             </div>
@@ -212,15 +257,17 @@ class NewPublication extends Component{
 const mapDispatchToProps = dispatch => ({
     onSetPublication: publication =>
       dispatch({ type: 'PUBLICATION_SET', publication }),   
-    onSetUser: users => 
-        dispatch({type:'USERS_SET', users})
+    onSetUsers: users => 
+        dispatch({type:'USERS_SET', users}),
+    
 });
-const mapStateToProps = state => ({
+const mapStateToProps = (state, props) => ({
     authUser: state.sessionState.authUser,
     users: Object.keys(state.userState.users || {}).map(key => ({
       ...state.userState.users[key],
       uid: key,
     })),
+    
   });
 
 
